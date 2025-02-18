@@ -21,6 +21,9 @@ RUN git clone https://github.com/openstreetmap/osmdbt.git && \
     cmake .. && \
     cmake --build .
 
+RUN sed -i 's/^wal_level *= *hot_standby.*/wal_level = logical/' "${CONTAINER_SCRIPTS_PATH}/openshift-custom-postgresql-replication.conf.template"
+
 FROM quay.io/sclorg/postgresql-15-c9s
 
 COPY --from=base /app/osmdbt/postgresql-plugin/build/osm-logical.so /usr/lib64/pgsql/osm-logical.so
+COPY --from=base ${CONTAINER_SCRIPTS_PATH}/openshift-custom-postgresql-replication.conf.template ${CONTAINER_SCRIPTS_PATH}/openshift-custom-postgresql-replication.conf.template
