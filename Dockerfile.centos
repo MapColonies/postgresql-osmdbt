@@ -1,0 +1,26 @@
+FROM quay.io/sclorg/postgresql-15-c9s as base
+
+WORKDIR /app
+
+RUN source "${CONTAINER_SCRIPTS_PATH}/common.sh" && \ 
+    set_pgdata && \ 
+    initdb
+
+USER root
+
+RUN dnf update -y && \
+    dnf install -y git make cmake gcc gcc-c++ postgresql-server-devel redhat-rpm-config postgresql-contrib && \
+    dnf clean all
+
+# Clone the osmdbt repository
+RUN git clone https://github.com/openstreetmap/osmdbt.git && \
+    cd osmdbt && \
+    git checkout d3af909f3d81a57b98211f6600c49d7dcda8e2d7 && \
+    mkdir -p ./postgresql-plugin/build && \
+    cd ./postgresql-plugin/build && \
+    cmake .. && \
+    cmake --build .
+
+FROM quay.io/sclorg/postgresql-15-c9s
+
+COPY --from=base /app/osmdbt/postgresql-plugin/build/osm-logical.so /usr/lib64/pgsql/osm-logical.so
