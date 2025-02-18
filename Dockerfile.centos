@@ -1,3 +1,5 @@
+# Base image by https://github.com/sclorg/postgresql-container
+
 FROM quay.io/sclorg/postgresql-15-c9s as base
 
 WORKDIR /app
